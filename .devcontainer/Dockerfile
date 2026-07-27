@@ -14,16 +14,32 @@ RUN dnf install -y \
         python3.11-pip \
         python3.11-devel \
         python3-libselinux \
+        bash-completion \
         gcc \
         openssl-devel \
         openssh-clients && \
-    dnf clean all
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 # Create non-root user for VS Code remote session
 RUN useradd -m -s /bin/bash vscode && \
     echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
     chown -R vscode:vscode /home/vscode && \
     usermod -aG root vscode
+
+COPY <<EOF /usr/local/bin/devcontainer-setup
+#!/bin/bash
+set -x
+echo "source /home/vscode/.venv/ansible-dev/bin/activate" >> /home/vscode/.bashrc
+# setup bash autocomplete in cli
+echo "source /etc/profile.d/bash_completion.sh" >> /home/vscode/.bashrc
+echo "cd /workspace/development" >> /home/vscode/.bashrc
+
+source /home/vscode/.bashrc
+# ansible-galaxy collection install --force /workspace/collections/*.tar.gz /workspace/thunboo/postgresql_deploy 2>/dev/null
+pip install "molecule-plugins[docker]"
+EOF
+RUN chmod 755 /usr/local/bin/devcontainer-setup
 
 # Set up python virtual environment for development purposes
 USER vscode

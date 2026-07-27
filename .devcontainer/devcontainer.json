@@ -2,7 +2,7 @@
   "name": "Ansible Dev Containers",
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
-  "workspaceFolder": "/workspace/development",
+  "workspaceFolder": "/workspace",
   "remoteUser": "vscode",
-  "postCreateCommand": "/workspace/.devcontainer/setup.sh"
+  "postCreateCommand": "/usr/local/bin/devcontainer-setup"
 }

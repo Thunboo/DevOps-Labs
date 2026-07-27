@@ -5,11 +5,12 @@
 # Список необходимых системных пакетов
 # -----
 # Lists OS packages that must be installed
-tdblep_debian_dblab_required_packages:
-  ?- apt-transport-https
+debian_required_packages:
+  - sudo
+  - openssh-server
+  - ufw
+  - fail2ban
+  - unattended-upgrades
   - ca-certificates
   - curl
-  ?- gnupg-agent
-  ?- software-properties-common
-  - ufw
-
+  - vim

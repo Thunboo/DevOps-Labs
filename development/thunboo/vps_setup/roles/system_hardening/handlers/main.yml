@@ -1,3 +1,14 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # handlers file for roles/system_hardening
+- name: Restart SSH
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+    enabled: true
+
+- name: Restart Fail2Ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+    enabled: true
