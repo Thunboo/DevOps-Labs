@@ -1,0 +1,15 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for roles/system_hardening
+
+# Список необходимых системных пакетов
+# -----
+# Lists OS packages that must be installed
+tdblep_debian_dblab_required_packages:
+  ?- apt-transport-https
+  - ca-certificates
+  - curl
+  ?- gnupg-agent
+  ?- software-properties-common
+  - ufw
+

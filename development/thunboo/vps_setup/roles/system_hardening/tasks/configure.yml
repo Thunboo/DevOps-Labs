@@ -1,0 +1,49 @@
+## NGINX Part
+- name: Configure DBLab nginx
+  when: VAR | bool
+  block:
+    - name: Copy SITENAME nginx config
+      ansible.builtin.template:
+        src: SITENAME.nginx.conf.j2
+        dest: "{{ nginx_config_path }}" # <- based on system - check dblab role
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Reload nginx
+
+    - name: Enable DBLab nginx site
+      when: ansible_os_family == "Debian"
+      ansible.builtin.file:
+        src: "{{ tdblep_nginx_config_path }}"
+        dest: /etc/nginx/sites-enabled/dblab
+        state: link
+        force: true
+      become: true
+      notify: Reload nginx
+
+    - name: Test nginx config
+      ansible.builtin.command: nginx -t
+      changed_when: false
+      become: true
+
+    # NOTE: Could be done with community.general.ufw, but it adds one more dependency
+    - name: Check UFW status
+      ansible.builtin.command: ufw status
+      register: tdblep_ufw_status
+      changed_when: false
+      when: ansible_os_family == "Debian"
+      become: true
+
+    - name: Allow HTTP and HTTPS via UFW
+      ansible.builtin.command: "ufw allow {{ port }}/tcp"
+      loop:
+        - "80"
+        - "443"
+      loop_control:
+        loop_var: port
+      when:
+        - ansible_os_family == "Debian"
+        - "'Status: active' in tdblep_ufw_status.stdout"
+        - "port ~ '/tcp' not in tdblep_ufw_status.stdout"
+      become: true

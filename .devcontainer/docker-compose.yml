@@ -1,0 +1,30 @@
+services:
+  devcontainer:
+    container_name: thunboolabs-ansible
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace
+    command: sleep infinity
+    environment:
+      DOCKER_HOST: tcp://dind:2375
+    depends_on:
+      dind:
+        condition: service_healthy
+
+  dind:
+    container_name: thunboolabs-dind
+    image: docker:dind
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - ./daemon.json:/etc/docker/daemon.json:ro
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    healthcheck:
+      test: ["CMD-SHELL", "docker info > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
