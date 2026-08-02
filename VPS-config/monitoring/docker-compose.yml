@@ -1,0 +1,191 @@
+services:
+  # Metrics collector. It scrapes targets from configs/vmagent/prometheus.yml
+  # and forwards samples to VictoriaMetrics.
+  vmagent:
+    container_name: metrics-collector
+    image: victoriametrics/vmagent:v1.140.0
+    depends_on:
+      - victoriametrics
+      - node-exporter
+      - cadvisor
+      - victorialogs
+      - vector
+    ports:
+      - "100.97.243.158:8429:8429"
+    volumes:
+      - vmagentdata:/vmagentdata
+      - ./configs/vmagent/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      #- "--remoteWrite.url=http://localhost:8428/api/v1/write"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+      - "--remoteWrite.tmpDataPath=/vmagentdata"
+    restart: always
+
+  # Logs collector. It reads Docker logs and selected host logs from /var/log,
+  # then forwards them to VictoriaLogs.
+  vector:
+    container_name: log-collector
+    image: docker.io/timberio/vector:0.46.X-distroless-libc
+    depends_on:
+      - victorialogs
+    ports:
+      - "100.97.243.158:8686:8686"
+    user: root
+    volumes:
+      - vectordata:/vector-data
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
+        source: /var/lib/docker
+        target: /var/lib/docker
+        read_only: true
+      - type: bind
+        source: /var/log
+        target: /var/log
+        read_only: true
+      - ./configs/vector/vector.yml:/etc/vector/vector.yaml:ro
+    restart: always
+
+  # VictoriaMetrics stores metrics and serves Prometheus-compatible queries.
+  victoriametrics:
+    container_name: vmetrics
+    image: victoriametrics/victoria-metrics:v1.140.0
+    ports:
+      - "100.97.243.158:8428:8428"
+      - "100.97.243.158:8089:8089"
+      - "100.97.243.158:8089:8089/udp"
+      - "100.97.243.158:2003:2003"
+      - "100.97.243.158:2003:2003/udp"
+      - "100.97.243.158:4242:4242"
+    volumes:
+      - vmdata:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+    restart: always
+
+  # VictoriaLogs stores logs and serves LogsQL queries.
+  victorialogs:
+    container_name: vlogs
+    image: victoriametrics/victoria-logs:v1.50.0
+    ports:
+      - "100.97.243.158:9428:9428"
+    volumes:
+      - vldata:/vlogs
+    command:
+      - "--storageDataPath=/vlogs"
+    restart: always
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:12.3.1
+    depends_on:
+      - victoriametrics
+      - victorialogs
+      - vmauth
+    ports:
+      - "100.97.243.158:3000:3000"
+    environment:
+      - GF_INSTALL_PLUGINS=victoriametrics-logs-datasource
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:rw
+      - ./provisioning/datasources/victoriametrics-logs-datasource/single.yml:/etc/grafana/provisioning/datasources/single.yml:rw
+      - ./dashboards:/var/lib/grafana/dashboards:rw
+    restart: always
+
+  # vmauth routes Grafana and vmalert requests to VictoriaMetrics or VictoriaLogs
+  # based on the request path.
+  vmauth:
+    container_name: victoria-router
+    image: victoriametrics/vmauth:v1.137.0
+    depends_on:
+      - victoriametrics
+      - victorialogs
+    ports:
+      - "100.97.243.158:8427:8427"
+    volumes:
+      - ./configs/vmauth/auth.yml:/etc/auth.yml:ro
+    command:
+      - "--auth.config=/etc/auth.yml"
+    restart: always
+
+  node-exporter:
+    container_name: node-exporter
+    # TODO: Remove LATEST tag
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    ports:
+      - "100.97.243.158:9100:9100"
+    command:
+      - "--path.rootfs=/host"
+    pid: host
+    volumes:
+      - "/:/host:ro"
+
+  cadvisor:
+    container_name: cadvisor
+    # TODO: Remove LATEST tag
+    image: gcr.io/cadvisor/cadvisor:latest
+    restart: unless-stopped
+    ports:
+      - "100.97.243.158:8088:8080"
+    privileged: true
+    devices:
+      - "/dev/kmsg:/dev/kmsg"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+      - "/dev/disk:/dev/disk:ro"
+
+  # Alerting is intentionally disabled for now.
+  # Uncomment this block later when Lab3 alert rules are ready.
+  #
+  # vmalert:
+  #   image: victoriametrics/vmalert:v1.140.0
+  #   depends_on:
+  #     - vmauth
+  #     - victoriametrics
+  #     - alertmanager
+  #   ports:
+  #     - "8880:8880"
+  #   volumes:
+  #     - ./rules/alerts-health.yml:/etc/alerts/alerts-health.yml:ro
+  #     - ./rules/alerts-vlogs.yml:/etc/alerts/alerts-vlogs.yml:ro
+  #     - ./rules/alerts-vlagent.yml:/etc/alerts/alerts-vlagent.yml:ro
+  #     - ./rules/vlogs-example-alerts.yml:/etc/alerts/vlogs-example-alerts.yml:ro
+  #   command:
+  #     - "--datasource.url=http://vmauth:8427/"
+  #     - "--remoteRead.url=http://victoriametrics:8428/"
+  #     - "--remoteWrite.url=http://victoriametrics:8428/"
+  #     - "--notifier.url=http://alertmanager:9093/"
+  #     - "--rule=/etc/alerts/*.yml"
+  #     - "--external.url=http://127.0.0.1:3000"
+  #     - '--external.alert.source=explore?orgId=1&left={"datasource":"{{ if eq .Type "vlogs" }}VictoriaLogs{{ else }}VictoriaMetrics{{ end }}","queries":[{"expr":{{.Expr|jsonEscape|queryEscape}},"refId":"A"}],"range":{"from":"{{ .ActiveAt.UnixMilli }}","to":"now"}}'
+  #   restart: always
+  #
+  # alertmanager:
+  #   image: prom/alertmanager:v0.30.1
+  #   ports:
+  #     - "9093:9093"
+  #   volumes:
+  #     - ./configs/alertmanager/alertmanager.yml:/config/alertmanager.yml:ro
+  #   command:
+  #     - "--config.file=/config/alertmanager.yml"
+  #     - "--cluster.listen-address="
+  #   restart: always
+
+volumes:
+  vmagentdata: {}
+  vectordata: {}
+  vmdata: {}
+  vldata: {}
+  grafanadata: {}

@@ -1,0 +1,15 @@
+services:
+  tg-ws-proxy:
+    container_name: tg-ws-proxy
+    image: tg-ws-proxy:latest
+    environment:
+      - TG_WS_PROXY_HOST=0.0.0.0 # Default Host - 0.0.0.0
+      - TG_WS_PROXY_PORT=8446    # Default Port - 1443
+      - TG_WS_PROXY_SECRET=FIXED_VALUE # Default Secret - random
+    command:
+      - --fake-tls-domain
+      - thunboo.ru
+      #- --proxy-protocol
+    ports:
+      - "127.0.0.1:8446:8446"
+    restart: unless-stopped

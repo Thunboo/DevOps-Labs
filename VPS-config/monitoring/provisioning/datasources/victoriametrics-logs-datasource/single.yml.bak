@@ -1,0 +1,93 @@
+apiVersion: 1
+
+datasources:
+  - name: VictoriaMetrics
+    type: prometheus
+    access: proxy
+    url: http://vmauth:8427/
+
+  - name: VictoriaLogs
+    type: victoriametrics-logs-datasource
+    access: proxy
+    url:  http://vmauth:8427/
+
+    jsonData:
+      maxLines: 1000
+
+      logLevelRules:
+        # First try a dedicated "level" field.
+
+        - field: level
+          value: '^(?i:critical|crit|fatal|panic)$'
+          level: critical
+          operator: regex
+          enabled: true
+
+        - field: level
+          value: '^(?i:error|err)$'
+          level: error
+          operator: regex
+          enabled: true
+
+        - field: level
+          value: '^(?i:warning|warn)$'
+          level: warning
+          operator: regex
+          enabled: true
+
+        - field: level
+          value: '^(?i:info|information|notice)$'
+          level: info
+          operator: regex
+          enabled: true
+
+        - field: level
+          value: '^(?i:debug)$'
+          level: debug
+          operator: regex
+          enabled: true
+
+        - field: level
+          value: '^(?i:trace)$'
+          level: trace
+          operator: regex
+          enabled: true
+
+        # Fallback for plain-text logs where severity exists only in _msg.
+        # Order matters: the first matching rule wins.
+
+        - field: _msg
+          value: '(?i)\b(critical|crit|fatal|panic|emerg|alert)\b'
+          level: critical
+          operator: regex
+          enabled: true
+
+        - field: _msg
+          value: '(?i)\b(error|err|failed|failure|exception)\b'
+          level: error
+          operator: regex
+          enabled: true
+
+        - field: _msg
+          value: '(?i)\b(warning|warn)\b'
+          level: warning
+          operator: regex
+          enabled: true
+
+        - field: _msg
+          value: '(?i)\b(info|information|notice)\b'
+          level: info
+          operator: regex
+          enabled: true
+
+        - field: _msg
+          value: '(?i)\bdebug\b'
+          level: debug
+          operator: regex
+          enabled: true
+
+        - field: _msg
+          value: '(?i)\btrace\b'
+          level: trace
+          operator: regex
+          enabled: true

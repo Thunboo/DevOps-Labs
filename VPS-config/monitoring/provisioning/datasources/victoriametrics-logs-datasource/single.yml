@@ -1,0 +1,74 @@
+apiVersion: 1
+
+datasources:
+  - name: VictoriaMetrics
+    type: prometheus
+    access: proxy
+    #url: http://localhost:8427/
+    url: http://vmauth:8427/
+
+  - name: VictoriaLogs
+    type: victoriametrics-logs-datasource
+    access: proxy
+    #url:  http://localhost:8427/
+    url:  http://vmauth:8427/
+    editable: true
+
+    jsonData:
+      maxLines: 1000
+
+      # TODO: For some reason - this resists to work. Sometimes it does work after some tweaking, sometimes - not. TBD
+      logLevelRules:
+        - field: _msg
+          operator: wordFilter
+          value: i(ufw*)
+          level: warning
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(panic)
+          level: critical
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(fatal)
+          level: critical
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(error)
+          level: error
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(fail*)
+          level: error
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(warn*)
+          level: warning
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(info*)
+          level: info
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(debug)
+          level: debug
+          enabled: true
+
+        - field: _msg
+          operator: wordFilter
+          value: i(trace)
+          level: trace
+          enabled: true

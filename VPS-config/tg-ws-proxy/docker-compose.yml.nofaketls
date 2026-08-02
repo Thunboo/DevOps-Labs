@@ -1,0 +1,11 @@
+# Вариант для случая без FakeTLSNginx
+services:
+  tg-ws-proxy:
+    container_name: tg-ws-proxy
+    image: tg-ws-proxy:latest
+    network_mode: host
+    environment:
+      - TG_WS_PROXY_HOST=0.0.0.0 # Default Host - 0.0.0.0
+      - TG_WS_PROXY_PORT=1443    # Default Port - 1443
+      - TG_WS_PROXY_SECRET=FIXED_VALUE # Default Secret - random
+    restart: always
