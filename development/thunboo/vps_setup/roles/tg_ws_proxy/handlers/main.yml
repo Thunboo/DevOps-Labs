@@ -1,3 +1,8 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# handlers file for roles/tg-ws-proxy
+# handlers file for roles/tg_ws_proxy
+- name: Restart TG WS Proxy
+  become: true
+  ansible.builtin.command:
+    cmd: |
+      docker compose up -d --force-recreate -f /opt/tg-ws-proxy/docker-compose.yml
+  changed_when: false

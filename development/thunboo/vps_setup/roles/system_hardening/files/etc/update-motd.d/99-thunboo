@@ -1,0 +1,28 @@
+#!/bin/bash
+
+HOSTNAME=$(hostname)
+UPTIME=$(uptime -p)
+LOAD=$(awk '{print $1, $2, $3}' /proc/loadavg)
+MEMORY=$(free -h | awk '/^Mem:/ {print $3 " / " $2}')
+DISK=$(df -h / | awk 'NR==2 {print $3 " / " $2 " (" $5 ")"}')
+IP=$(hostname -I | awk '{print $1}')
+
+cat <<EOF
+
+╔════════════════════════════════════════╗
+║       Welcome to Thunboo VPS           ║
+║                                        ║
+║  Connect to Netbird to reach services: ║
+║  Grafana:  grafana.thunboo.ru          ║
+║                                        ║
+║  Docs:     /opt/docs                   ║
+╚════════════════════════════════════════╝
+
+ Hostname:  $HOSTNAME
+ IP:        $IP
+ Uptime:    $UPTIME
+ Load:      $LOAD
+ Memory:    $MEMORY
+ Disk /:    $DISK
+
+EOF

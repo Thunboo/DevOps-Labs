@@ -1,3 +1,36 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# tasks file for roles/tg-ws-proxy
+# tasks file for roles/tg_ws_proxy
+- name: Assert that docker is available
+  block:
+    - name: Check Docker availability
+      ansible.builtin.command: docker info
+      register: tg_ws_proxy_docker_info
+      changed_when: false
+      failed_when: false
+      become: true
+
+    - name: Install Docker placeholder
+      ansible.builtin.fail:
+        msg: "Docker is not installed or not running. Docker installation will be implemented later."
+      when: tg_ws_proxy_docker_info.rc != 0
+
+- name: Setup phase
+  ansible.builtin.import_tasks: setup.yml
+
+# nginx configure
+- name: Configure phase
+  ansible.builtin.import_tasks: configure.yml
+
+- name: Start tg-ws-proxy
+  become: true
+  # community.docker.docker_compose_v2:
+  ansible.builtin.command:
+    cmd: |
+      docker compose up -d -f /opt/tg-ws-proxy/docker-compose.yml
+  changed_when: false
+  register: tg_ws_proxy_docker_compose_up
+
+- name: Fail if docker compose up rc != 0
+  ansible.builtin.fail:
+    msg: "docker compose up failed - check manually"
+  when: tg_ws_proxy_docker_compose_up.rc != 0

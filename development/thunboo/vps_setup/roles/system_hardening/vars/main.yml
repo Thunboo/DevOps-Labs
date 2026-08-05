@@ -1,3 +1,5 @@
-#SPDX-License-Identifier: MIT-0
 ---
 # vars file for roles/system_hardening
+
+ssh_port: {{ system_hardening_ssh_port | default(22) }}
+ssh_allowed_users: {{ system_hardening_ssh_allowed_users | default(ansible_user) }}

@@ -1,11 +1,10 @@
-#SPDX-License-Identifier: MIT-0
 ---
 # defaults file for roles/system_hardening
 
 # Список необходимых системных пакетов
 # -----
 # Lists OS packages that must be installed
-debian_required_packages:
+system_hardening_debian_required_packages:
   - sudo
   - openssh-server
   - ufw
@@ -14,3 +13,4 @@ debian_required_packages:
   - ca-certificates
   - curl
   - vim
+  - git

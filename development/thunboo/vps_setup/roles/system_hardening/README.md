@@ -1,38 +1,94 @@
-Role Name
-=========
+# system_hardening
 
-A brief description of the role goes here.
+Configures baseline security and system services on Debian-based VPS hosts.
 
-Requirements
-------------
+The role:
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- installs required system packages;
+- hardens the OpenSSH server configuration;
+- configures login banners and a dynamic MOTD;
+- configures UFW with deny-by-default incoming traffic;
+- configures Fail2Ban for SSH;
+- optionally installs nginx configuration files.
 
-Role Variables
---------------
+## Requirements
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- Ansible 2.14 or later
+- A Debian-family target such as Debian or Ubuntu
+- Privilege escalation to root
+- The `community.general` collection for the UFW module
 
-Dependencies
-------------
+Install the required collection with:
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+```bash
+ansible-galaxy collection install community.general
+```
 
-Example Playbook
-----------------
+## Role variables (with examples)
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yaml
+system_hardening_ssh_port: 2201
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+system_hardening_ssh_allowed_users:
+  - user1
+  - user2
 
-License
--------
+system_hardening_configure_nginx: false
+```
 
-BSD
+### `system_hardening_ssh_port`
 
-Author Information
-------------------
+The SSH TCP port allowed through UFW and monitored by Fail2Ban. The default is
+`22`.
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+### `system_hardening_ssh_allowed_users`
+
+The users permitted to connect through SSH. The default permits `thunboo`.
+Ensure these users exist and have working SSH keys before applying the role.
+
+### `system_hardening_configure_nginx`
+
+Whether the role should deploy its nginx configuration. The default is `false`.
+
+## Example inventory
+
+```yaml
+---
+all:
+  children:
+    vps:
+      hosts:
+        vps01:
+          ansible_host: 203.0.113.10
+          ansible_user: thunboo
+```
+
+Example `group_vars/vps.yml`:
+
+```yaml
+---
+system_hardening_ssh_port: 22
+system_hardening_ssh_allowed_users:
+  - thunboo
+system_hardening_configure_nginx: false
+```
+
+## Example playbook
+
+```yaml
+---
+- name: Harden VPS hosts
+  hosts: vps
+  become: true
+
+  roles:
+    - role: thunboo.vps_setup.system_hardening
+```
+
+## License
+
+MIT
+
+## Author
+
+Thunboo

@@ -1,24 +1,19 @@
-#SPDX-License-Identifier: MIT-0
 ---
 # tasks file for roles/system_hardening
----
-- name: Assert ... config ... is valid
-  ansible.builtin.assert:
-    that:
-      - VAR is defined
-      - VAR in ['VALUE1', 'VALUE2']
-    fail_msg: "Set VAR to VALUE1 or VALUE2"
+# - name: Assert ... config ... is valid
+#   ansible.builtin.assert:
+#     that:
+#       - VAR is defined
+#       - VAR in ['VALUE1', 'VALUE2']
+#     fail_msg: "Set VAR to VALUE1 or VALUE2"
 
 - name: Break on unsuported operating systems
   when:
     - ansible_os_family != "Debian"
-    # - not (
-    #     ansible_distribution == "CentOS"
-    #     and ansible_distribution_major_version == "9"
-    #   )
   ansible.builtin.fail:
-    msg: Only Debian family systems # and CentOS 9 supported.
+    msg: Only for Debian family systems
 
+# Work-around for multi-system packages setup
 - name: Setup phase
   ansible.builtin.import_tasks: setup.yml
 

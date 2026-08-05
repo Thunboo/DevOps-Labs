@@ -1,7 +1,7 @@
 ---
 - name: Install required packages
   ansible.builtin.apt:
-    name: "{{ debian_required_packages }}"
+    name: "{{ system_hardening_debian_required_packages + (['nginx'] if system_hardening_configure_nginx | bool else []) }}"
     state: present
     update_cache: true
   become: true

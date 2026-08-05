@@ -1,0 +1,92 @@
+---
+# Clone tg_ws_proxy
+- name: Get Source files
+  block:
+    - name: Clone tg-ws-proxy repository
+      ansible.builtin.git:
+        repo: https://github.com/Flowseal/tg-ws-proxy.git
+        dest: /opt/tg-ws-proxy
+        version: main
+
+    - name: Set ownership and directory permissions
+      ansible.builtin.file:
+        path: /opt/tg-ws-proxy
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+        recurse: true
+
+    - name: Find files in tg-ws-proxy repository
+      ansible.builtin.find:
+        paths: /opt/tg-ws-proxy
+        file_type: file
+        hidden: true
+      register: tg_ws_proxy_files
+
+    - name: Set file permissions
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ tg_ws_proxy_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+- name: Copy docker-compose.yml
+  ansible.builtin.copy:
+    src: docker-compose.yml
+    dest: /opt/tg-ws-proxy/docker-compose.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create TG WS Proxy environment file
+  ansible.builtin.shell:
+    executable: /bin/bash
+    cmd: |
+      set -euo pipefail
+
+      destination=/opt/tg-ws-proxy/tg-ws-proxy.env
+      umask 077
+
+      secret=""
+
+      if [[ -f "$destination" ]]; then
+        secret="$(
+          sed -n 's/^TG_WS_PROXY_SECRET=//p' "$destination" |
+            head -n 1
+        )"
+      fi
+
+      if [[ -z "$secret" ]]; then
+        secret="$(/usr/bin/openssl rand -hex 16)"
+      fi
+
+      temporary_file="$(mktemp "${destination}.XXXXXX")"
+      trap 'rm -f "$temporary_file"' EXIT
+
+      cat > "$temporary_file" <<EOF
+      TG_WS_PROXY_HOST={{ tg_ws_proxy_host }}
+      TG_WS_PROXY_PORT={{ tg_ws_proxy_port }}
+      TG_WS_PROXY_SECRET=${secret}
+      EOF
+
+      chmod 0640 "$temporary_file"
+      chown root:sudo "$temporary_file"
+
+      if [[ -f "$destination" ]] &&
+         cmp --silent "$temporary_file" "$destination"; then
+        exit 0
+      fi
+
+      mv --force "$temporary_file" "$destination"
+      trap - EXIT
+
+      exit 3
+  register: tg_ws_proxy_env_result
+  changed_when: tg_ws_proxy_env_result.rc == 3
+  failed_when: tg_ws_proxy_env_result.rc not in [0, 3]
+  no_log: true
+  notify: Restart TG WS Proxy

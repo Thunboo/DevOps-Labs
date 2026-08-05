@@ -4,5 +4,15 @@
   "service": "devcontainer",
   "workspaceFolder": "/workspace",
   "remoteUser": "vscode",
-  "postCreateCommand": "/usr/local/bin/devcontainer-setup"
+  "postCreateCommand": "/usr/local/bin/devcontainer-setup",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.ansible",
+        "redhat.vscode-yaml",
+        "oderwat.indent-rainbow",
+        "openai.chatgpt"
+      ]
+    }
+  }
 }
