@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 echo "source /home/vscode/.venv/ansible-dev/bin/activate" >> ~/.bashrc
-echo "cd /workspace/development" >> ~/.bashrc
+echo "cd /workspace/ansible" >> ~/.bashrc
 source ~/.bashrc
 ansible-galaxy collection install --force /workspace/collections/*.tar.gz /workspace/thunboo/postgresql_deploy 2>/dev/null
 pip install "molecule-plugins[docker]"

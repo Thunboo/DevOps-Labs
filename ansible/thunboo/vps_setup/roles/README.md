@@ -1,0 +1,1 @@
+Use nginxinc.nginx_config role for configuring nginx on remote host

@@ -1,0 +1,14 @@
+# Docs: https://kubernetes.io/docs/concepts/workloads/pods/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend-pod
+spec:
+  containers:
+  - name: backend
+    image: api:v1
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 
+
+

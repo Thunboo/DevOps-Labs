@@ -76,8 +76,7 @@
       chmod 0640 "$temporary_file"
       chown root:sudo "$temporary_file"
 
-      if [[ -f "$destination" ]] &&
-         cmp --silent "$temporary_file" "$destination"; then
+      if [[ -f "$destination" ]] && cmp --silent "$temporary_file" "$destination"; then
         exit 0
       fi
 

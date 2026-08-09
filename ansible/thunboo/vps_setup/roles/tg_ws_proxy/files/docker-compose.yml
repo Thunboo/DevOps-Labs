@@ -8,7 +8,7 @@ services:
     command:
       - --fake-tls-domain
       - thunboo.ru
-      #- --proxy-protocol
+      #- --proxy-protocol # Not working currently
     ports:
       - "127.0.0.1:8446:8446"
     restart: unless-stopped

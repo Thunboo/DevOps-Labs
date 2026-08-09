@@ -1,0 +1,16 @@
+# Docs: https://kubernetes.io/docs/concepts/workloads/pods/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend-pod
+spec:
+  containers:
+  - name: frontend
+    image: frontend:v1
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 3000
+      name: http
+    env:
+    - name: NEXT_PUBLIC_API_BASE_URL
+      value: "http://localhost:8000"

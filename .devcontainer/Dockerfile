@@ -33,7 +33,7 @@ set -x
 echo "source /home/vscode/.venv/ansible-dev/bin/activate" >> /home/vscode/.bashrc
 # setup bash autocomplete in cli
 echo "source /etc/profile.d/bash_completion.sh" >> /home/vscode/.bashrc
-echo "cd /workspace/development" >> /home/vscode/.bashrc
+echo "cd /workspace/ansible" >> /home/vscode/.bashrc
 
 source /home/vscode/.bashrc
 # ansible-galaxy collection install --force /workspace/collections/*.tar.gz /workspace/thunboo/postgresql_deploy 2>/dev/null
