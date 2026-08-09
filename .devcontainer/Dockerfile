@@ -27,6 +27,7 @@ RUN useradd -m -s /bin/bash vscode && \
     chown -R vscode:vscode /home/vscode && \
     usermod -aG root vscode
 
+# This is used in devcontainer.json: .postCreateCommand
 COPY <<EOF /usr/local/bin/devcontainer-setup
 #!/bin/bash
 set -x
