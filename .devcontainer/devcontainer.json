@@ -12,7 +12,10 @@
         "redhat.vscode-yaml",
         "oderwat.indent-rainbow",
         "openai.chatgpt"
-      ]
+      ],
+      "settings": {
+        "python.terminal.activateEnvironment": false
+      }
     }
   }
 }
