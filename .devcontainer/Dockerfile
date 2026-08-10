@@ -41,7 +41,7 @@ echo "alias lla=\"ls -lha\""
 echo "cd /workspace/ansible" >> /home/vscode/.bashrc
 source /home/vscode/.bashrc
 # ansible-galaxy collection install --force /workspace/collections/*.tar.gz /workspace/thunboo/postgresql_deploy 2>/dev/null
-pip install "molecule-plugins[docker]"
+pip install --no-cache-dir "molecule-plugins[docker]"
 EOF
 RUN chmod 755 /usr/local/bin/devcontainer-setup
 
@@ -52,7 +52,7 @@ WORKDIR /home/vscode
 RUN python3.11 -m venv /home/vscode/.venv/ansible-dev --system-site-packages && \
     . /home/vscode/.venv/ansible-dev/bin/activate && \
     pip install --upgrade pip && \
-    pip3 install \
+    pip3 install --no-cache-dir \
         ansible-dev-tools \
         psycopg2-binary
 
