@@ -1,0 +1,16 @@
+---
+# Purpose: assert that the instance really ended up in the expected state.
+# Molecule calls this playbook with `molecule verify`.
+- name: Verify with ping
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Test connectivity
+      ansible.builtin.ping:
+      changed_when: false
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    # TODO: Write tests

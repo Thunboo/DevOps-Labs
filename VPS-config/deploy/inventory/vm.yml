@@ -1,7 +1,7 @@
 ---
 all:
   hosts:
-  thunboo_vps:
+    thunboo_vps:
       ansible_host: thunboo.ru
       ansible_port: 2222
       ansible_user: thunboo

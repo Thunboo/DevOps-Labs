@@ -2,8 +2,8 @@
 - name: Install required packages
   hosts: webservers
   become: true
-  # vars:
-  #   check_hostname: 'example.com'
+  vars:
+    check_hostname: 'thunboo.ru'
   #   packages:
   #     # - python3-pip
   #     - python3-psycopg2
