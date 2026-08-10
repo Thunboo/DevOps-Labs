@@ -1,0 +1,17 @@
+---
+all:
+  hosts:
+  thunboo_vps:
+      ansible_host: thunboo.ru
+      ansible_port: 2222
+      ansible_user: thunboo
+      # TODO: Make this config and ansible inside this devcontainer use ssh-agent from host
+      ansible_ssh_private_key_file: /home/thunboo/.ssh/id_ed25519
+  
+  children:
+    webservers:
+      hosts:
+        thunboo_vps:
+      vars:
+        ansible_become: yes
+        ansible_become_method: sudo

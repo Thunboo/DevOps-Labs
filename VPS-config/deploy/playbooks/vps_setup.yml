@@ -1,0 +1,38 @@
+---
+- name: Install required packages
+  hosts: webservers
+  become: true
+  # vars:
+  #   check_hostname: 'example.com'
+  #   packages:
+  #     # - python3-pip
+  #     - python3-psycopg2
+  #     - glibc-langpack-ru
+
+  pre_tasks:
+    # - name: PG Clusters variable debug
+    #   ansible.builtin.debug:
+    #     var: pg_clusters
+        
+    - name: Check if host is resolvable
+      ansible.builtin.command: getent hosts {{ check_hostname }}
+      register: check_hostname_getent
+      changed_when: false
+      failed_when: false
+
+    - ansible.builtin.set_fact:
+        check_hostname_resolvable: "{{ check_hostname_getent.rc == 0 }}"
+
+    - name: Debug resolution status
+      ansible.builtin.debug:
+        msg: "host {{ check_hostname }} is {{ 'resolvable' if check_hostname_resolvable else 'NOT resolvable' }}"
+
+  # tasks:
+      
+  roles:
+    - thunboo.vps_setup.system_hardening
+    - thunboo.vps_setup.netbird
+    - thunboo.vps_setup.tg_ws_proxy
+    - thunboo.vps_setup.monitoring
+    - nginxinc.nginx_config
+
