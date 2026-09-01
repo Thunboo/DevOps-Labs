@@ -1,5 +1,5 @@
 ---
-# SSH, Fail2Ban, nginx
+# SSH, Fail2Ban
 - name: Configure ssh
   block:
     - name: Configure SSH hardening
@@ -34,6 +34,21 @@
         owner: root
         group: root
         mode: "0644"
+
+    - name: Find update-motd scripts
+      ansible.builtin.find:
+        paths: /etc/update-motd.d
+        file_type: file
+        excludes:
+          - 99-thunboo
+      register: system_hardening_update_motd_scripts
+
+    - name: Remove executable permission from update-motd scripts
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        mode: "a-x"
+      loop: "{{ system_hardening_update_motd_scripts.files }}"
+      notify: Update dynamic MOTD
 
     - name: Add dynamic message of the day
       ansible.builtin.copy:
@@ -85,9 +100,9 @@
           enabled = true
           port = {{ ssh_port }}
           backend = systemd
-          maxretry = 5
-          findtime = 10m
-          bantime = 1h
+          maxretry = 3
+          findtime = 1h
+          bantime = 1d
       notify: Restart Fail2Ban
 
     - name: Enable Fail2Ban
@@ -95,29 +110,3 @@
         name: fail2ban
         state: started
         enabled: true
-
-- name: Configure nginx
-  when: system_hardening_configure_nginx | bool else false
-  block:
-    - name: Copy nginx main config
-      ansible.builtin.template:
-        src: nginx/nginx.conf.j2
-        dest: "/etc/nginx/nginx.conf"
-        owner: root
-        group: root
-        mode: "0644"
-      notify: Reload nginx
-
-    - name: Copy nginx stream config
-      ansible.builtin.template:
-        src: nginx/default.stream.j2
-        dest: "/etc/nginx/stream-enabled/default.conf"
-        owner: root
-        group: root
-        mode: "0644"
-      notify: Reload nginx
-
-    - name: Test nginx config
-      ansible.builtin.command: nginx -t
-      changed_when: false
-      become: true

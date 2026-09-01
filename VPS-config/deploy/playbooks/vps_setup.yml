@@ -13,7 +13,7 @@
     # - name: PG Clusters variable debug
     #   ansible.builtin.debug:
     #     var: pg_clusters
-        
+
     - name: Check if host is resolvable
       ansible.builtin.command: getent hosts {{ check_hostname }}
       register: check_hostname_getent
@@ -28,11 +28,9 @@
         msg: "host {{ check_hostname }} is {{ 'resolvable' if check_hostname_resolvable else 'NOT resolvable' }}"
 
   # tasks:
-      
   roles:
     - thunboo.vps_setup.system_hardening
-    - thunboo.vps_setup.netbird
-    - thunboo.vps_setup.tg_ws_proxy
-    - thunboo.vps_setup.monitoring
-    - nginxinc.nginx_config
-
+    # - thunboo.vps_setup.netbird
+    # - thunboo.vps_setup.tg_ws_proxy
+    # - thunboo.vps_setup.monitoring
+    # - nginxinc.nginx_config

@@ -27,7 +27,7 @@ platforms:
     # tmpfs:
     #   - /run
     #   - /tmp:rw
-    environment:
+    env:
       container: docker
 
 provisioner:
@@ -58,7 +58,7 @@ verifier:
   name: ansible
 
 scenario:
-  name: system_hardening
+  name: tg_ws_proxy
   test_sequence:
     # - cleanup # ? Do we need this?
     # - destroy

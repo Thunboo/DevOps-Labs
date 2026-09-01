@@ -3,3 +3,63 @@
 # tasks file for roles/netbird
 
 # https://docs.netbird.io/selfhosted/automated-setup
+
+- name: Assert NetBird role variables are set
+  ansible.builtin.assert:
+    that:
+      - netbird_server | default("") | length > 0
+      - setup_key | default("") | length > 0
+    fail_msg: "Set netbird_server and setup_key variables for the netbird role."
+
+- name: Check if NetBird management host is resolvable
+  ansible.builtin.command:
+    cmd: getent hosts {{ netbird_server }}
+  register: netbird_server_getent
+  changed_when: false
+  failed_when: false
+
+- name: Fail if NetBird management host is not resolvable
+  ansible.builtin.fail:
+    msg: "Host {{ netbird_server }} is NOT resolvable"
+  when: netbird_server_getent.rc != 0
+
+- name: Check whether NetBird is installed
+  ansible.builtin.stat:
+    path: /usr/bin/netbird
+  register: netbird_binary
+
+- name: Download NetBird installer
+  become: true
+  ansible.builtin.get_url:
+    url: https://pkgs.netbird.io/install.sh
+    dest: /tmp/netbird-install.sh
+    mode: "0755"
+  when: not netbird_binary.stat.exists
+
+- name: Install NetBird
+  become: true
+  ansible.builtin.command:
+    cmd: /tmp/netbird-install.sh
+  args:
+    creates: /usr/bin/netbird
+  when: not netbird_binary.stat.exists
+
+- name: Check NetBird connection status
+  become: true
+  ansible.builtin.command:
+    cmd: netbird status
+  register: netbird_status
+  changed_when: false
+  failed_when: false
+
+- name: Connect NetBird to management server
+  become: true
+  ansible.builtin.command:
+    cmd: >-
+      netbird up
+      --management-url https://{{ netbird_server }}
+      --setup-key {{ setup_key }}
+  register: netbird_up
+  changed_when: netbird_up.rc == 0
+  when: netbird_status.rc != 0
+  no_log: true

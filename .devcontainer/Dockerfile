@@ -7,16 +7,11 @@ COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 RUN dnf install -y \
         glibc-langpack-en \
         sudo \
-        vim \
-        tree \
-        rsync \
         python3.11 \
         python3.11-pip \
         python3.11-devel \
-        python3-libselinux \
         bash-completion \
         gcc \
-        openssl-devel \
         openssh-clients && \
     dnf clean all && \
     rm -rf /var/cache/dnf
@@ -42,6 +37,9 @@ source /home/vscode/.bashrc
 source /home/vscode/.venv/ansible-dev/bin/activate
 # ansible-galaxy collection install --force /workspace/collections/*.tar.gz /workspace/thunboo/postgresql_deploy 2>/dev/null
 pip install --no-cache-dir "molecule-plugins[docker]"
+ansible-galaxy collection install \\
+  'community.docker:>=2.1.0' \\
+  'ansible.posix:>=2.1.0'
 deactivate
 
 echo -e "if ! command -v molecule >/dev/null 2>&1; then\\n\\tsource /home/vscode/.venv/ansible-dev/bin/activate\\nfi" >> /home/vscode/.bashrc
@@ -54,7 +52,7 @@ WORKDIR /home/vscode
 # TODO: Do we really still need psycopg2 lib?
 RUN python3.11 -m venv /home/vscode/.venv/ansible-dev --system-site-packages && \
     . /home/vscode/.venv/ansible-dev/bin/activate && \
-    pip install --upgrade pip && \
+    pip install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir \
         ansible-dev-tools \
         psycopg2-binary

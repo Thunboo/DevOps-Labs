@@ -13,5 +13,6 @@
     enabled: true
 
 - name: Update dynamic MOTD
-  ansible.builtin.command: /usr/sbin/update-motd
+  ansible.builtin.shell:
+    cmd: run-parts --lsbsysinit /etc/update-motd.d > /run/motd.dynamic
   changed_when: false

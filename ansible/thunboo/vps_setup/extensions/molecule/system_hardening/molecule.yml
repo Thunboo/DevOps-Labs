@@ -15,19 +15,20 @@ platforms:
   - name: ubuntu_os
     groups:
       - vps
-    image: "ubuntu:24.04" # Maybe will need to use a ubuntu+systemd image
+    image: "geerlingguy/docker-ubuntu2404-ansible:latest" # Maybe will need to use a ubuntu+systemd image
     # https://github.com/geerlingguy/docker-ubuntu2404-ansible
 
     pre_build_image: true # Use already existing image (pull or use pulled one)
     privileged: true
-    # command: ["/usr/sbin/init"] # We don't need this for regular ubuntu:24.04 image
-    # cgroupns_mode: host # Used for cgroups v2 in newer linux distros for systemd and etc
-    # volumes:
-    #   - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    # tmpfs:
-    #   - /run
-    #   - /tmp:rw
-    environment:
+    # override_command: false
+    command: "/lib/systemd/systemd" # We don't need this for regular ubuntu:24.04 image
+    cgroupns_mode: host # Used for cgroups v2 in newer linux distros for systemd and etc
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    tmpfs:
+      - /run
+      - /tmp:rw
+    env:
       container: docker
 
 provisioner:
@@ -64,7 +65,7 @@ scenario:
     # - destroy
     # - syntax # What is this?
     - create
-    # - prepare # ? Do we need this for testing this role?
+    - prepare
     - converge
     - converge # idempotence
     - verify

@@ -1,0 +1,20 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - update-motd
+        state: present
+        update_cache: true
+
+    - name: Create SSH privilege separation directory
+      ansible.builtin.file:
+        path: /run/sshd
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
